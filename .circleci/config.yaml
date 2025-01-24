@@ -1,0 +1,43 @@
+version: 2.1
+
+executors:
+  default:
+    docker:
+      - image: circleci/openjdk:11-jdk
+    working_directory: ~/repo
+
+jobs:
+  build:
+    executor: default
+    steps:
+      - checkout
+      - run: ./gradlew build
+
+  test:
+    executor: default
+    steps:
+      - checkout
+      - run: ./gradlew test
+
+  deploy:
+    executor: default
+    steps:
+      - checkout
+      - run: ./gradlew deploy
+      - run: docker exec -ti kafka kafka-topics.sh --create --topic my-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+      - run: docker exec -ti kafka kafka-console-producer.sh --broker-list localhost:9092 --topic my-topic
+      - run: docker exec -ti kafka kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic my-topic --from-beginning
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+  deploy:
+    jobs:
+      - deploy:
+          requires:
+            - build_and_test
