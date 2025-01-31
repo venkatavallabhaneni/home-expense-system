@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homeexpsys-general
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: homeexpsys-general
+  template:
+    metadata:
+      labels:
+        app: homeexpsys-general
+    spec:
+      containers:
+        - name: homeexpsys-general
+          image: homeexpsys-general-app
+          resources:
+            limits:
+              memory: "1Gi"
+          ports:
+            - containerPort: 8080
